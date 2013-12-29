@@ -72,20 +72,30 @@ module FluentOutputTest
       # default
       d = create_mock_driver
       d.instance.start
+      assert_equal 0, d.instance.instance_variable_get('@writer_current_position')
       d.instance.submit_flush
+      assert_equal 0, d.instance.instance_variable_get('@writer_current_position')
       d.instance.submit_flush
+      assert_equal 0, d.instance.instance_variable_get('@writer_current_position')
       d.instance.submit_flush
+      assert_equal 0, d.instance.instance_variable_get('@writer_current_position')
       d.instance.submit_flush
+      assert_equal 0, d.instance.instance_variable_get('@writer_current_position')
       d.instance.shutdown
       assert_equal 1, d.instance.submit_flush_threads.size
 
       # num_threads 4
       d = create_mock_driver(CONFIG + %[num_threads 4])
       d.instance.start
+      assert_equal 0, d.instance.instance_variable_get('@writer_current_position')
       d.instance.submit_flush
+      assert_equal 1, d.instance.instance_variable_get('@writer_current_position')
       d.instance.submit_flush
+      assert_equal 2, d.instance.instance_variable_get('@writer_current_position')
       d.instance.submit_flush
+      assert_equal 3, d.instance.instance_variable_get('@writer_current_position')
       d.instance.submit_flush
+      assert_equal 0, d.instance.instance_variable_get('@writer_current_position')
       d.instance.shutdown
       assert_equal 4, d.instance.submit_flush_threads.size, "fails if only one thread works to submit flush"
     end
