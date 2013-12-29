@@ -51,5 +51,43 @@ module FluentOutputTest
       d.instance.retry_limit.times { d.instance.instance_variable_get(:@error_history) << Engine.now }
       assert_equal 4, d.instance.calc_retry_wait
     end
+
+    def create_mock_driver(conf=CONFIG)
+      Fluent::Test::BufferedOutputTestDriver.new(Fluent::BufferedOutput) do
+        attr_accessor :submit_flush_threads
+
+        def try_flush
+          @submit_flush_threads ||= {}
+          @submit_flush_threads[Thread.current] ||= 0
+          @submit_flush_threads[Thread.current] += 1
+        end
+
+        def write(chunk)
+          chunk.read
+        end
+      end.configure(conf)
+    end
+
+    def test_submit_flush_target
+      # default
+      d = create_mock_driver
+      d.instance.start
+      d.instance.submit_flush
+      d.instance.submit_flush
+      d.instance.submit_flush
+      d.instance.submit_flush
+      d.instance.shutdown
+      assert_equal 1, d.instance.submit_flush_threads.size
+
+      # num_threads 4
+      d = create_mock_driver(CONFIG + %[num_threads 4])
+      d.instance.start
+      d.instance.submit_flush
+      d.instance.submit_flush
+      d.instance.submit_flush
+      d.instance.submit_flush
+      d.instance.shutdown
+      assert_equal 4, d.instance.submit_flush_threads.size, "fails if only one thread works to submit flush"
+    end
   end
 end
