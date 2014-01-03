@@ -82,6 +82,7 @@ module FluentOutputTest
       d.instance.submit_flush
       assert_equal 0, d.instance.instance_variable_get('@writer_current_position')
       d.instance.shutdown
+      sleep 3
       assert_equal 1, d.instance.submit_flush_threads.size
 
       # num_threads 4
