@@ -59,6 +59,10 @@ op.on('--msgpack', "same as: -f msgpack", TrueClass) {|b|
   format = 'msgpack'
 }
 
+op.on('--ltsv', "same as: -f ltsv", TrueClass) {|b|
+  format = 'ltsv'
+}
+
 (class<<self;self;end).module_eval do
   define_method(:usage) do |msg|
     puts op.to_s
@@ -86,6 +90,7 @@ require 'monitor'
 require 'socket'
 require 'yajl'
 require 'msgpack'
+require 'ltsv'
 
 
 class Writer
@@ -287,6 +292,17 @@ when 'msgpack'
       w.write(record)
     }
   rescue EOFError
+  rescue
+    $stderr.puts $!
+    exit 1
+  end
+
+when 'ltsv'
+  begin
+    while line = $stdin.gets
+      record = LTSV.parse_line(line.chomp, {})
+      w.write(record)
+    end
   rescue
     $stderr.puts $!
     exit 1
